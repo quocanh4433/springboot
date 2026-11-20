@@ -64,3 +64,95 @@ Gồm 3 phần chính
 
 ``COPY / ADD:`` sao chép tệp hoặc thư mục từ máy host vào image
 
+``ENV:`` khai báo môi trường
+
+
+#### 1.1 Dockerfile với React
+
+Tạo dự án React
+
+```
+npm create vite@latest my-react-app -- --template react
+```
+
+Tạo Dockerfile
+
+```java
+
+// 1. chọn node v22 image
+FROM node:22-alpine
+
+// 2. thư mục làm việc trong container
+WORKDIR /app
+
+// 3. copy các file có tên bắt đầu bằng package và kết thúc bằng .json vào thư mục /app
+COPY package*.json ./
+
+// 4. Cài đặt dependencies
+RUN npm install
+
+// 5. Copy source code
+// '.' thứ nhất: thư mục build context máy host
+// '.' thứ hai: thư mục trong docker image (/app)
+COPY . .
+
+// 6. expose port container
+EXPOSE 5050
+
+
+
+// 7. Chạy Vite server
+// Exec Form không thông qua Shell
+
+// "--" là phần cách     
+// npm run <script> -- <agrument>
+// trước "--": tham số cho npm
+// sau "--": tham số cho chương trình sau khi chạy npm
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5050"]
+
+```
+
+Hiểu thêm về lệnh ``CMD``
+
+Lệnh này chạy sau khi đã tạo container
+
+```
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+```
+
+
+Build Docker Image
+
+```
+docker build -t my-react-app .
+```
+
+- ``docker build``: build docker image từ dockerfile
+
+- ``-t my-react-app``: tag tên docker image
+
+- ``.``: build ở thư mục hiện tại
+
+Kiểm tra images
+
+```
+docker images
+```
+
+Run Docker Container 
+
+```
+docker run -d -p 5173:5050 --name react-container my-react-app
+```
+- ``docker run``: khởi tạo container
+
+- ``-d``: Detached mode - chạy container ở chế đồ nền
+
+- ``-p``: Publish port - ánh xạ port host và container
+
+- ``5173:5050``: host port (port trên máy tính) là 5173 và container port 5050
+
+- ``react-container``: tên container sau khi build
+
+- ``my-react-app``: tên image để build container

@@ -156,3 +156,173 @@ docker run -d -p 5173:5050 --name react-container my-react-app
 - ``react-container``: tên container sau khi build
 
 - ``my-react-app``: tên image để build container
+
+
+
+
+
+### 2 Docker Compose
+
+Giả sử một ứng dụng
+
+1. SpringBoot: Backend API
+2. MySQL
+3. Redis
+
+Thay vi chạy từng lệnh docker
+
+```
+docker run -d --name mysql ...
+docker run -d --name redis ...
+docker run -d --name springboot ...
+```
+
+Nếu không có docker compose phải chạy từng container tự cấu hình port, networkm environment và kết nối giữa các container
+
+### 2.1 Kiến trúc docker compose
+
+![Docker Compose](./imgs/img_docker_04.jfif)
+
+1. ``docker-compose``: file cấu hình
+
+2. ``Networks``: kết nối container với nhau
+
+3. ``Volumes``: lưu trữu dữ liệu bền vững
+
+4. ``Service``: định nghĩa các service container cần chạy
+
+
+### 2.2 Docker compose với react
+
+Tạo file ``compose.yaml`` trong thư mục react
+
+```
+services:
+  react-app-services:
+    build:
+       context: .
+       dockerfile: Dockerfile
+    container_name: react-app-container
+    ports:
+      - "5173:5050"
+	
+```
+
+Trong đó:
+
+- ``services``: khai báo service
+
+- ``react-app-services``: tên service
+
+- ``build``: yêu cầu build image
+
+- ``context``: lấy thư mục hiện tại làm build context
+
+- ``dockerfile``: đường dẫn dockerfile
+
+- ``container_name``: tên container
+
+- ``ports``: mapping port
+
+
+Chạy docker compose
+
+```
+docker compose -p react-app-service up -d --build
+```
+
+Trong đó:
+
+- ``docker compose``: sử dụng docker để quản lí service
+
+
+- ``-p react-app-service``: đặt tên seriice
+
+- ``up``: khởi tạo container
+
+- ``-d``: chạy container ở chế độ detached
+
+- ``--build``: build image trước khi khởi chạy container
+
+
+### 2.3 Docker compose với react + mySQL
+
+![Docker Compose](./imgs/img_docker_05.png)
+
+```
+services:
+  react-app-services:
+    image: react-app-compose-image
+    build:
+       context: .
+       dockerfile: Dockerfile
+    container_name: react-app-compose-container
+    ports:
+      - "5173:5050"
+    depends_on: 
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: 123
+      MYSQL_DATABASE: react_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:
+```
+
+
+### 2.4 Docker compose với React + Springboot + MySQL
+
+![Docker Compose](./imgs/img_docker_06.png)
+
+Cấu trúc thư mục
+
+```
+docker-compose-project/
+│
+├── frontend/
+│
+├── backend/
+│
+└── compose.yaml
+```
+
+Luồng request
+
+
+```
+Browser
+  │
+  │ 1. GET / hoặc React UI
+  ▼
+React (Vite)
+  │
+  │ 2. HTTP Request: GET /api/users
+  ▼
+Spring Boot (REST API)
+  │
+  │ 3. JDBC Query
+  ▼
+MySQL
+  │
+  │ 4. Return data
+  ▼
+Spring Boot
+  │
+  │ 5. JSON Response
+  ▼
+React → Browser
+```
+
+
+
+
+
+#### 2.4. Docker Compose tự tạo Network như thế nào?

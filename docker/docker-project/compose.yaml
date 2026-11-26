@@ -1,6 +1,7 @@
 services:
 
   frontend:
+    image: react-image
     build:
       context: ./frontend-react
       dockerfile: Dockerfile
@@ -15,6 +16,7 @@ services:
 
 
   backend:
+    image: springboot-image
     build:
       context: ./backend-spring
       dockerfile: Dockerfile
@@ -43,7 +45,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "123456"
       MYSQL_DATABASE: demo
-      MYSQL_USER: root
+      MYSQL_USER: appuser
       MYSQL_PASSWORD: apppassword
 
     ports:
